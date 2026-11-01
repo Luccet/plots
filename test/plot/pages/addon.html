@@ -1,0 +1,56 @@
+<!doctype html><meta charset="utf-8"><script src="/luccet.js" data-use="/plot.js"></script>
+
+# Smoke: the plot add-on
+
+Functions, with a legend, a domain and a dashed curve:
+
+```plot {#waves}
+y = sin(x)               {label="$\sin x$"}
+y = cos x                {label="$\cos x$" .dashed}
+y = x^2/4, x in [0, 3]   {label="$x^2/4$, $0 \le x \le 3$" color=5}
+x in [-2π, 2π]
+y in [-2, 2]
+```
+
+An implicit circle, a region between curves, a parametric and a polar curve, points:
+
+```plot {#shapes}
+x^2 + y^2 = 4
+0 <= y <= cos(x)         {color=3 label="$0 \le y \le \cos x$"}
+(cos(t), sin(t)/2)       {color=4}
+r = 1 + cos(θ)           {color=6}
+(1, 2), (2, 1)           {label="P" color=2}
+equal
+x in [-3, 3]
+y in [-2.5, 2.5]
+```
+
+Asymptotes break, roots of negatives are real, and TeX mixes in:
+
+```plot [Asymptotes]{#asym}
+y = tan x
+y = \frac{1}{x - 1}      {color=2}
+y = \sqrt[3]{x}          {color=3}
+x in [-4, 4]
+y in [-4, 4]
+grid off
+```
+
+Definitions, a region inside a curve, an author's colour:
+
+```plot {#defs}
+a = 2
+f(x) = a x e^{-x}
+y = f(x)                 {label="$f(x) = 2x e^{-x}$" width=3}
+x^2/9 + y^2 < 1          {color=#d97706 label="an ellipse's inside"}
+xlabel "time"
+ylabel "f"
+x in [-1, 6]
+y in [-1.5, 1.5]
+```
+
+A plot that does not parse:
+
+```plot {#broken}
+y = sin(
+```
