@@ -1,0 +1,19 @@
+{
+  "name": "@luccet/plots",
+  "private": true,
+  "description": "Plots for Luccet notes: plot.js draws plot fences, functions, curves, regions and points, with no library, and vega-lite.js draws vega-lite and vega fences as charts with Vega-Lite, in the page theme's colours, in light, dark and print.",
+  "license": "MIT",
+  "repository": "github:Luccet/plots",
+  "files": [
+    "plot.js",
+    "vega-lite.js"
+  ],
+  "scripts": {
+    "test": "npm run test:node && npm run test:browser",
+    "test:node": "node test/plot/node.js && node test/vega-lite/node.js",
+    "test:browser": "node test/plot/browser.js && node test/vega-lite/browser.js"
+  },
+  "devDependencies": {
+    "playwright": "1.61.1"
+  }
+}

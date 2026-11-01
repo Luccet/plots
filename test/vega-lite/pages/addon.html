@@ -1,0 +1,62 @@
+<!doctype html><meta charset="utf-8"><script src="/luccet.js" data-use="/vega-lite.js"></script>
+
+# Smoke: the vega-lite add-on
+
+A bar chart, one series, in the theme's first plot colour:
+
+```vega-lite {#bars}
+{
+  "data": {"values": [{"a": "A", "b": 28}, {"a": "B", "b": 55}, {"a": "C", "b": 43}, {"a": "D", "b": 91}]},
+  "mark": "bar",
+  "encoding": {"x": {"field": "a", "type": "nominal"}, "y": {"field": "b", "type": "quantitative"}}
+}
+```
+
+Points from CSV, coloured by category, with a tooltip and a link that is dropped:
+
+```vega-lite [Cars]{#cars}
+{
+  "data": {"url": "/test/vega-lite/data/cars.csv"},
+  "mark": {"type": "point", "filled": true, "size": 80},
+  "encoding": {
+    "x": {"field": "horsepower", "type": "quantitative"},
+    "y": {"field": "mpg", "type": "quantitative"},
+    "color": {"field": "origin", "type": "nominal"},
+    "tooltip": {"field": "name"},
+    "href": {"value": "javascript:alert(1)"}
+  }
+}
+```
+
+A line with an expression, and width "container":
+
+```vega-lite {#line}
+{
+  "width": "container",
+  "data": {"sequence": {"start": 0, "stop": 12.6, "step": 0.1, "as": "x"}},
+  "transform": [{"calculate": "sin(datum.x) * exp(-datum.x / 6)", "as": "y"}],
+  "mark": "line",
+  "encoding": {"x": {"field": "x", "type": "quantitative"}, "y": {"field": "y", "type": "quantitative"}}
+}
+```
+
+Raw Vega:
+
+```vega {#raw}
+{
+  "width": 200, "height": 100,
+  "marks": [{"type": "rect", "encode": {"enter": {"x": {"value": 10}, "y": {"value": 10}, "width": {"value": 80}, "height": {"value": 40}, "fill": {"value": "steelblue"}}}}]
+}
+```
+
+Not JSON:
+
+```vega-lite {#notjson}
+{"mark": "bar",}
+```
+
+Data that does not load:
+
+```vega-lite {#nodata}
+{"data": {"url": "/missing.csv"}, "mark": "bar", "encoding": {"x": {"field": "a", "type": "nominal"}}}
+```

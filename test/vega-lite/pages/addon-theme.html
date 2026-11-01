@@ -1,0 +1,20 @@
+<!doctype html><meta charset="utf-8"><script src="/luccet.js" data-use="/test/themes/nord.css /vega-lite.js" data-nonce="luccet-addon-nonce"></script>
+
+# Smoke: the vega-lite add-on in a dark theme, under a strict policy
+
+```vega-lite {#bars}
+{
+  "data": {"values": [{"a": "A", "b": 28}, {"a": "B", "b": 55}]},
+  "mark": "bar",
+  "encoding": {"x": {"field": "a", "type": "nominal"}, "y": {"field": "b", "type": "quantitative"}}
+}
+```
+
+```vega-lite {#cars}
+{
+  "data": {"url": "/test/vega-lite/data/cars.csv"},
+  "transform": [{"filter": "datum.mpg > 20"}, {"calculate": "datum.horsepower / 10", "as": "hp10"}],
+  "mark": "point",
+  "encoding": {"x": {"field": "hp10", "type": "quantitative"}, "y": {"field": "mpg", "type": "quantitative"}, "color": {"field": "origin"}, "tooltip": {"field": "name"}}
+}
+```
