@@ -48,9 +48,9 @@ https://cdn.luccet.dev/plots/v1/plot.js
 
 - **From cdn.luccet.dev,** `v1/` is the newest 1.x release of the kit, checked for a newer one every hour; a release's own folder, such as `v1.0.0/`, never changes, and browsers keep it a year.
 - **A copy of your own:** put `plot.js` or `vega-lite.js` beside your notes and list it by its path, `data-use="plot.js"`.
-- **Options** for vega-lite.js go in its query string, `vega-lite.js?base=vend/vega`, or in `window.LUCCET = {use: {'vega-lite': {…}}}` in a head script ([options](https://luccet.dev/docs/schema.html#use-options)). plot.js has none: a plot's settings are in its fence.
+- **Options** for vega-lite.js go in its query string, `vega-lite.js?base=vend/vega`, or in `window.LUCCET = {use: {'vega-lite': {…}}}` in a head script ([options](https://luccet.dev/docs/addon-api.html#use-options)). plot.js has none: a plot's settings are in its fence.
 
-How add-ons load, and how to write one: [Add-ons](https://luccet.dev/docs/schema.html#addons).
+How add-ons load, and how to write one: [Writing an add-on](https://luccet.dev/docs/addon-api.html#top).
 
 ## Figures and ids
 
