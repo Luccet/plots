@@ -4,12 +4,14 @@
 // listings and ids kept, legends with their formulas, a broken one left
 // with its error; colours from luccet.css's palette, a theme's (Nord, under
 // a strict policy with no violation), the reader's dark preference and print,
-// all without drawing again; and nothing fetched.
+// all without drawing again; nothing fetched; and examples/areas.html, with
+// the engine from the checkout in place of the CDN's.
 //
 //   LUCCET_ROOT=…/luccet node test/plot/browser.js [--browsers=…] [--filter=TEXT]
 'use strict';
 
 const h = require('../harness');
+const examples = require('../examples');
 
 // In the page: a colour as the browser computes it, in rgb().
 const PAGE = () => {
@@ -27,7 +29,69 @@ const PAGE = () => {
   };
 };
 
+// examples/areas.html's figures: for each, the colour of each line drawn,
+// curves (a dashed one marked), regions and points, and its legend's size.
+const AREAS = {
+  'fig-sincos': { curves: ['c1', 'c4'], regions: ['c3'], points: 2, legend: 3 },
+  'fig-slices': { curves: ['c1', 'c4', 'c5 dashed'], regions: ['c3'], points: 2, legend: 3 },
+  'fig-polar': { curves: ['c1', 'c4'], regions: ['c3'], points: 2, legend: 3 },
+  'fig-astroid': { curves: ['c1 dashed', 'c4'], regions: ['c3'], points: 0, legend: 3 },
+};
+
 const TESTS = [
+  {
+    name: 'examples/areas.html: four plots in numbered figures, each line drawn (functions of x and y, polar, parametric and implicit curves, regions, points) in its colour, legends with formulas, ticks in π; nothing fetched',
+    url: '/examples/areas.html',
+    init: PAGE,
+    setup: async (context, page, ctx) => {
+      await examples.fromCdn(context, ctx.origin);
+      ctx.requests = [];
+      page.on('request', (r) => ctx.requests.push(r.url()));
+    },
+    check: async (page, ctx) => {
+      await h.expect(page, () => document.querySelectorAll('figure .t-plot > svg').length === 4, 'four plots in figures');
+      const r = await page.evaluate((ids) => {
+        const lines = (fig, kind) =>
+          [...fig.querySelectorAll(`.t-plot-${kind}`)]
+            .filter((p) => (p.getAttribute('d') || '').length > 100)
+            .map((p) => [...p.classList].filter((c) => /^t-plot-(c\d|dashed)$/.test(c)).map((c) => c.slice(7)).join(' '));
+        const figs = {};
+        for (const id of ids) {
+          const fig = document.getElementById(id);
+          figs[id] = {
+            figure: fig && fig.matches('figure[data-t="figure"]'),
+            caption: fig && (/^Figure\s*\d+/.exec(fig.querySelector(':scope > figcaption').textContent.trim()) || [''])[0].replace(/\s+/, ' '),
+            ref: (document.querySelector(`main.luccet a.t-ref[href="#${id}"]`) || {}).textContent,
+            curves: lines(fig, 'curve'),
+            regions: lines(fig, 'region'),
+            points: fig.querySelectorAll('circle.t-plot-point').length,
+            legend: fig.querySelectorAll('.t-plot-legend > li').length,
+            maths: fig.querySelectorAll('.t-plot-legend > li math').length,
+            hidden: fig.querySelector('.t-plot > pre').hidden,
+          };
+        }
+        const colour = (c) => window.__pl.colour(document.querySelector(`.t-plot-curve.t-plot-${c}, .t-plot-point.t-plot-${c}`));
+        return {
+          figs,
+          colours: ['c1', 'c4', 'c5'].map(colour),
+          link: window.__pl.prop('--t-link'),
+          pi: [...document.querySelectorAll('#fig-sincos .t-plot-labels text')].map((t) => t.textContent).filter((t) => t.includes('π')),
+        };
+      }, Object.keys(AREAS));
+      Object.keys(AREAS).forEach((id, i) => {
+        const want = AREAS[id];
+        const got = r.figs[id];
+        h.assert(got.figure && got.caption === `Figure ${i + 1}` && got.ref === `Figure ${i + 1}`, `${id}: figure ${got.figure}, caption "${got.caption}", reference "${got.ref}"`);
+        for (const want_ of want.curves) h.assert(got.curves.includes(want_), `${id}: no ${want_} curve among ${JSON.stringify(got.curves)}`);
+        h.assert(JSON.stringify(got.regions) === JSON.stringify(want.regions), `${id}: regions ${JSON.stringify(got.regions)}`);
+        h.assert(got.points === want.points && got.legend === want.legend && got.maths === want.legend && got.hidden, `${id}: ${got.points} points, ${got.legend} legend entries with ${got.maths} formulas, fence hidden ${got.hidden}`);
+      });
+      h.assert(r.colours[0] === r.link && new Set(r.colours).size === 3, `colours 1, 4 and 5: ${r.colours}, --t-link ${r.link}`);
+      h.assert(r.pi.join() === 'π/4,π/2,3π/4,π,5π/4,3π/2,7π/4,2π', `ticks in π: ${r.pi}`);
+      const others = ctx.requests.filter((u) => !u.startsWith(ctx.origin) && !/^https:\/\/cdn\.luccet\.dev\//.test(u));
+      h.assert(!others.length, `nothing fetched beyond the site and cdn.luccet.dev: ${others}`);
+    },
+  },
   {
     name: "fences drawn: listings and ids kept, legends with formulas, the fence hidden; a broken one left with its error and its id; luccet.css's colours; nothing fetched",
     url: '/test/plot/pages/addon.html',

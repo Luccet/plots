@@ -4,9 +4,9 @@
 // leaves drawing to the browser; luccet.plot (the add-on run with a stub
 // engine) reads every kind of line, calculator and TeX notation alike, and
 // says what is wrong with one it cannot; curves break at asymptotes and
-// where they are undefined, implicit ones close; ticks in π; and its
-// palette is the kit's, vega-lite.js's too. The browser's part is
-// test/plot/browser.js's.
+// where they are undefined, implicit ones close; ticks in π; its
+// palette is the kit's, vega-lite.js's too; and the examples that load it
+// pass luccet check. The browser's part is test/plot/browser.js's.
 //
 //   LUCCET_ROOT=…/luccet node test/plot/node.js
 'use strict';
@@ -15,6 +15,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const h = require('../harness');
+const examples = require('../examples');
 
 const SRC = fs.readFileSync(path.join(h.ROOT, 'plot.js'), 'utf8');
 
@@ -149,5 +150,7 @@ h.test('the palette: six colours, a theme’s --t-plot-N first, then its link an
   const block = (src) => /const FALLBACK = \{[\s\S]*?\};\n  const THEMED = \[[^\]]*\];/.exec(src)[0];
   h.assert(block(SRC) === block(VL), 'plot.js and vega-lite.js have one palette');
 });
+
+h.test('examples/: the notes that load plot.js pass luccet check with nothing to report', () => examples.check('plot.js'));
 
 h.runTests();

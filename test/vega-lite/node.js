@@ -3,9 +3,9 @@
 // vega-lite.js under node: it runs under the command line with no
 // diagnostic and leaves drawing to the browser; its Vega table is well
 // formed and is the pinned versions' (the interpreter it carries too); its
-// print palette is luccet.css's; it compiles nothing at run time; and
-// tools/vendor.js writes the copy ?base= takes. The browser's part is
-// test/vega-lite/browser.js's.
+// print palette is luccet.css's; it compiles nothing at run time;
+// tools/vendor.js writes the copy ?base= takes; and the examples that load
+// it pass luccet check. The browser's part is test/vega-lite/browser.js's.
 //
 //   LUCCET_ROOT=…/luccet node test/vega-lite/node.js
 'use strict';
@@ -14,6 +14,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const h = require('../harness');
+const examples = require('../examples');
 
 const SRC = fs.readFileSync(path.join(h.ROOT, 'vega-lite.js'), 'utf8');
 const node = (args, cwd = h.ROOT) => {
@@ -71,5 +72,7 @@ h.test('tools/vendor.js: Vega and Vega-Lite in the layout ?base= takes; usage er
     h.assert(node([tool('vendor.js')], dir).code === 2 && node([tool('vendor.js'), 'a', 'b'], dir).code === 2, 'no DIR, or two');
   }),
 );
+
+h.test('examples/: the notes that load vega-lite.js pass luccet check with nothing to report', () => examples.check('vega-lite.js'));
 
 h.runTests();

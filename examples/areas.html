@@ -1,0 +1,142 @@
+<!doctype html><meta charset="utf-8">
+<script>
+  // This note's vocabulary: figures are numbered, so @fig-sincos reads "Figure 1".
+  window.LUCCET = {schema: {block: {figure: {tag: 'figure', counter: 'figure', label: 'Figure'}}}};
+</script>
+<script src="https://cdn.luccet.dev/v2/luccet.js" data-use="../plot.js https://cdn.luccet.dev/themes/v1/classic.css"></script>
+
+:::meta
+title: Areas between curves
+lang: en
+:::
+
+# Areas between curves
+
+> An example of the [plots kit's](https://github.com/Luccet/plots) `plot.js`: functions of $x$
+> and of $y$, a definition or two, regions between two graphs and inside implicit curves,
+> polar and parametric curves, an implicit circle, labelled points, legends with formulas,
+> ticks in $\pi$, and plots as numbered figures. The colours are the
+> [classic theme's](https://github.com/Luccet/themes), picked by number. The note loads
+> `../plot.js`, this repository's copy.
+
+## Between two graphs
+
+Where $f \ge g$ on $[a, b]$, the area between their graphs is
+$$
+A = \int_a^b \bigl(f(x) - g(x)\bigr)\,dx.
+$$ {#eq-between}
+
+$\sin x$ and $\cos x$ cross where $\tan x = 1$, at $x = \pi/4$ and $x = 5\pi/4$, and between
+the two crossings $\sin x \ge \cos x$ (@fig-sincos). So
+$$
+\begin{aligned}
+A &= \int_{\pi/4}^{5\pi/4} (\sin x - \cos x)\,dx = \Bigl[-\cos x - \sin x\Bigr]_{\pi/4}^{5\pi/4} \\
+  &= \sqrt2 + \sqrt2 = 2\sqrt2 \approx 2.83.
+\end{aligned}
+$$
+
+:::figure[The region between $\sin x$ and $\cos x$, from one crossing to the next.]{#fig-sincos}
+```plot
+f(x) = sin x
+g(x) = cos x
+g(x) <= y <= f(x), x in [π/4, 5π/4]   {color=3 label="$A = 2\sqrt{2}$"}
+y = f(x)                               {color=1 label="$\sin x$"}
+y = g(x)                               {color=4 label="$\cos x$"}
+(π/4, sqrt(2)/2)                       {color=5 label="π/4"}
+(5π/4, -sqrt(2)/2)                     {color=5 label="5π/4"}
+x in [-π/4, 9π/4]
+y in [-1.5, 1.5]
+```
+:::
+
+## Slicing along y
+
+The parabola $x = y^2$ and the line $x = y + 2$ meet where $y^2 = y + 2$, at $y = -1$ and
+$y = 2$: the points $(1, -1)$ and $(4, 2)$ of @fig-slices. Sliced across $x$, the region needs
+two integrals, since its lower edge changes at $x = 1$ (dashed): the parabola's lower half
+before it, the line after. Sliced along $y$ it needs one, the line being to the right of the
+parabola all the way from $y = -1$ to $y = 2$. By @eq-between with $x$ and $y$ swapped,
+$$
+A = \int_{-1}^{2} (y + 2 - y^2)\,dy
+  = \Bigl[\tfrac{y^2}{2} + 2y - \tfrac{y^3}{3}\Bigr]_{-1}^{2}
+  = \tfrac{10}{3} + \tfrac{7}{6} = \tfrac{9}{2}.
+$$
+The two integrals in $x$ agree:
+$$
+\int_0^1 2\sqrt{x}\,dx + \int_1^4 (\sqrt{x} - x + 2)\,dx = \tfrac43 + \tfrac{19}{6} = \tfrac92.
+$$
+
+:::figure[The region between $x = y^2$ and $x = y + 2$.]{#fig-slices}
+```plot
+y^2 <= x <= y + 2           {color=3 label="$A = 9/2$"}
+x = y^2                     {color=1 label="$x = y^2$"}
+x = y + 2                   {color=4 label="$x = y + 2$"}
+x = 1, y in [-1, 1]         {color=5 .dashed}
+(1, -1), (4, 2)             {color=5}
+x in [-1, 5]
+y in [-2.5, 3]
+```
+:::
+
+## In polar coordinates
+
+The area swept by $r = r(\theta)$ as $\theta$ runs from $\alpha$ to $\beta$ is
+$\frac12 \int_\alpha^\beta r^2\,d\theta$. The circle $r = 3\cos\theta$ and the cardioid
+$r = 1 + \cos\theta$ meet where $\cos\theta = \frac12$, at $\theta = \pm\pi/3$ and $r = \frac32$:
+the points $\bigl(\frac34, \pm\frac{3\sqrt3}{4}\bigr)$. Inside the circle and outside the
+cardioid,
+$$
+\begin{aligned}
+A &= \frac12 \int_{-\pi/3}^{\pi/3} \bigl(9\cos^2\theta - (1 + \cos\theta)^2\bigr)\,d\theta \\
+  &= \frac12 \int_{-\pi/3}^{\pi/3} (3 + 4\cos 2\theta - 2\cos\theta)\,d\theta \\
+  &= \frac12 \bigl(2\pi + 2\sqrt3 - 2\sqrt3\bigr) = \pi.
+\end{aligned}
+$$
+
+@fig-polar shades the points that are in both: inside the circle, $x^2 + y^2 < 3x$, and
+outside the cardioid, $(x^2 + y^2 - x)^2 > x^2 + y^2$. A point is in both when the smaller of
+$3x - x^2 - y^2$ and $(x^2 + y^2 - x)^2 - x^2 - y^2$ is positive, which is one inequality.
+
+:::figure[Inside the circle $r = 3\cos\theta$, outside the cardioid $r = 1 + \cos\theta$.]{#fig-polar}
+```plot
+min(3x - x^2 - y^2, (x^2 + y^2 - x)^2 - x^2 - y^2) > 0   {color=3 label="$A = \pi$"}
+r = 3 cos θ                 {color=1 label="$r = 3\cos\theta$"}
+r = 1 + cos θ               {color=4 label="$r = 1 + \cos\theta$"}
+(3/4, 3sqrt(3)/4), (3/4, -3sqrt(3)/4)   {color=5}
+equal
+x in [-1, 4]
+y in [-1.75, 1.75]
+```
+:::
+
+## A closed parametric curve
+
+A closed curve traced once anticlockwise encloses $A = \frac12 \oint (x\,dy - y\,dx)$. For the
+astroid $x = \cos^3 t$, $y = \sin^3 t$,
+$$
+x\,dy - y\,dx = 3\sin^2 t \cos^2 t\,(\cos^2 t + \sin^2 t)\,dt = \tfrac34 \sin^2 2t\,dt,
+$$
+so
+$$
+A = \frac12 \int_0^{2\pi} \tfrac34 \sin^2 2t\,dt = \frac{3\pi}{8},
+$$
+three eighths of the unit circle around it, which it touches at its four cusps
+(@fig-astroid). Its implicit form, $|x|^{2/3} + |y|^{2/3} \le 1$, shades the inside.
+
+:::figure[The astroid $(\cos^3 t, \sin^3 t)$ in the unit circle.]{#fig-astroid}
+```plot
+|x|^(2/3) + |y|^(2/3) <= 1    {color=3 label="$A = 3\pi/8$"}
+x^2 + y^2 = 1                 {color=1 .dashed label="$x^2 + y^2 = 1$"}
+(cos^3 t, sin^3 t)            {color=4 label="$(\cos^3 t, \sin^3 t)$"}
+equal
+x in [-2, 2]
+y in [-1.25, 1.25]
+```
+:::
+
+## In short
+
+- Between graphs: top minus bottom in $x$, or right minus left in $y$, whichever needs fewer
+  pieces.
+- In polar coordinates: $\frac12 \int r^2\,d\theta$, between the angles where the curves cross.
+- Inside a closed parametric curve: $\frac12 \oint (x\,dy - y\,dx)$.

@@ -7,9 +7,10 @@
 // that are not JSON or whose data does not load left with their errors; a
 // change of scheme drawn again; a dark theme under a strict policy with no
 // violation (no eval); ?base=; no Vega for a note without a chart; and both
-// of the kit's add-ons on one page. Vega comes from its local copy
-// (tools/vega.js), so runs are the same each time and work offline after
-// the first.
+// of the kit's add-ons on one page; and examples/electricity.html, with the
+// engine from the checkout in place of the CDN's. Vega comes from its local
+// copy (tools/vega.js), so runs are the same each time and work offline
+// after the first.
 //
 //   LUCCET_ROOT=…/luccet node test/vega-lite/browser.js [--browsers=…] [--filter=TEXT] [--live-cdn]
 'use strict';
@@ -18,6 +19,7 @@ const fs = require('fs');
 const path = require('path');
 const h = require('../harness');
 const { packageDir } = require('../../tools/vega');
+const examples = require('../examples');
 
 const SRC = fs.readFileSync(path.join(h.ROOT, 'vega-lite.js'), 'utf8');
 const V = { vega: /vega: '([\d.]+)'/.exec(SRC)[1], 'vega-lite': /vegaLite: '([\d.]+)'/.exec(SRC)[1] };
@@ -43,6 +45,62 @@ const PAGE = () => {
 const drawn = (n) => `document.querySelectorAll('.t-vega > .t-vega-screen svg').length === ${n}`;
 
 const TESTS = [
+  {
+    name: "examples/electricity.html: a year of daily readings from the CSV beside it, as two charts in numbered figures: a bar a month for each meter in the palette's first two colours, and 365 days with a fitted line in its first; width container",
+    url: '/examples/electricity.html',
+    init: PAGE,
+    setup: (context, page, ctx) => examples.fromCdn(context, ctx.origin),
+    check: async (page) => {
+      await h.expect(page, () => document.querySelectorAll('#fig-weather .t-vega-screen .mark-symbol.role-mark path').length && document.querySelectorAll('#fig-months .t-vega-screen .mark-rect.role-mark path').length, 'the two charts', 20000);
+      const r = await page.evaluate(() => {
+        const all = (sel) => [...document.querySelectorAll(sel)];
+        const fills = (sel, a = 'fill') => [...new Set(all(sel).map((p) => window.__vl.resolved(p.getAttribute(a))))];
+        const figs = ['fig-months', 'fig-weather'].map((id) => {
+          const fig = document.getElementById(id);
+          return {
+            figure: !!fig && fig.matches('figure[data-t="figure"]') && !!fig.querySelector('.t-vega > .t-vega-screen svg'),
+            caption: fig && (/^Figure\s*\d+/.exec(fig.querySelector(':scope > figcaption').textContent.trim()) || [''])[0].replace(/\s+/, ' '),
+            ref: (document.querySelector(`main.luccet a.t-ref[href="#${id}"]`) || {}).textContent,
+          };
+        });
+        const m = '#fig-months .t-vega-screen';
+        const w = '#fig-weather .t-vega-screen';
+        return {
+          figs,
+          bars: all(`${m} .mark-rect.role-mark path`).length,
+          barFills: fills(`${m} .mark-rect.role-mark path`),
+          legend: all(`${m} .role-legend-label text`).map((t) => t.textContent),
+          months: all(`${m} .role-axis-label text`).map((t) => t.textContent).filter((t) => /^[A-Z][a-z]{2}$/.test(t)),
+          kwh: Math.max(...all(`${m} .role-axis-label text`).map((t) => Number(t.textContent.replace(/,/g, ''))).filter((n) => !Number.isNaN(n))),
+          points: all(`${w} .mark-symbol.role-mark path`).length,
+          pointFills: fills(`${w} .mark-symbol.role-mark path`),
+          lines: all(`${w} .mark-line.role-mark path`).length,
+          lineStroke: fills(`${w} .mark-line.role-mark path`, 'stroke'),
+          link: window.__vl.prop('--t-link'),
+          second: (() => {
+            const probe = document.createElement('span');
+            probe.className = 't-vega-c2';
+            document.querySelector('#fig-months .t-vega').append(probe);
+            const c = getComputedStyle(probe).color;
+            probe.remove();
+            return c;
+          })(),
+          width: Number(document.querySelector(`${w} svg`).getAttribute('width')),
+          box: document.querySelector('#fig-weather .t-vega').clientWidth,
+          errors: document.querySelectorAll('.t-vega-error').length,
+        };
+      });
+      r.figs.forEach((f, i) => h.assert(f.figure && f.caption === `Figure ${i + 1}` && f.ref === `Figure ${i + 1}`, `figure ${i + 1}: ${JSON.stringify(f)}`));
+      h.assert(r.bars === 24 && r.barFills.join() === [r.link, r.second].join(), `a bar a month for each meter, in the palette's first two colours: ${r.bars} bars, ${r.barFills} (want ${r.link}, ${r.second})`);
+      h.assert(r.legend.join() === 'Heat pump,Rest of the house', `the legend: ${r.legend}`);
+      h.assert(r.months.join() === 'Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec', `the months: ${r.months}`);
+      h.assert(r.kwh === 800, `the kWh axis ends at 800, above January's 799: ${r.kwh}`);
+      h.assert(r.points === 365 && r.lines === 1, `365 days and one fitted line: ${r.points}, ${r.lines}`);
+      h.assert(r.pointFills.join() === r.link && r.lineStroke.join() === r.link, `one series in --t-link: points ${r.pointFills}, line ${r.lineStroke}`);
+      h.assert(Math.abs(r.width - r.box) < 4, `width container: ${r.width} in ${r.box}`);
+      h.assert(!r.errors, `${r.errors} charts not drawn`);
+    },
+  },
   {
     name: "charts drawn in luccet.css's colours, series in the plot palette; CSV with quotes, expressions, width container; unsafe links dropped; errors kept with their ids; print copies; SRI",
     url: '/test/vega-lite/pages/addon.html',
