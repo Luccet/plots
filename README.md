@@ -160,6 +160,17 @@ writes `vend/vega/vega.min.js` and `vend/vega/vega-lite.min.js` at the versions 
 
 `node tools/vega.js VEGA VEGA_LITE INTERPRETER` (`node tools/vega.js 6.4.0 6.5.0 2.3.2`) rewrites the table in vega-lite.js: the versions, the SRI hashes, and the interpreter it carries. `--check` says whether the table is what its versions give.
 
+## Examples
+
+Notes that use the add-ons, in [`examples/`](examples):
+
+| Example | What it shows |
+|---|---|
+| [`areas.html`](examples/areas.html) | `plot.js`, in a calculus note on areas between curves: functions of x and of y, definitions, regions between two graphs and inside implicit curves, polar and parametric curves, an implicit circle, labelled points, legends with formulas, ticks in π, plots as numbered figures; the classic theme's colours, picked by number |
+| [`electricity.html`](examples/electricity.html) | `vega-lite.js`, in a note on a year of a house's electricity: daily readings (illustrative) from [`electricity-2025.csv`](examples/electricity-2025.csv) beside it, a stacked bar chart in the theme's series colours, a scatter plot with a fitted line and tooltips, Vega-Lite's fold, filter and regression transforms, charts that fill the column, numbered figures; the Catppuccin theme's colours, listed after classic |
+
+They load `../plot.js` or `../vega-lite.js`, this repository's copies, so they show the add-ons as they are here, and the engine and the [themes](https://github.com/Luccet/themes) from cdn.luccet.dev. Open one in a browser from a clone (the engine, the themes and Vega come over the network). A chart's data is fetched, which Chrome and other Chromium browsers refuse to a page opened as a file: for `electricity.html` in those, serve the repository (`python3 -m http.server`, say) and open `/examples/electricity.html`. `npm test` checks them.
+
 ## Tests
 
 ```sh

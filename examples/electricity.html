@@ -1,0 +1,114 @@
+<!doctype html><meta charset="utf-8">
+<script>
+  // This note's vocabulary: figures are numbered, so @fig-months reads "Figure 1".
+  window.LUCCET = {schema: {block: {figure: {tag: 'figure', counter: 'figure', label: 'Figure'}}}};
+</script>
+<script src="https://cdn.luccet.dev/v2/luccet.js" data-use="../vega-lite.js https://cdn.luccet.dev/themes/v1/classic.css https://cdn.luccet.dev/themes/v1/catppuccin.css"></script>
+
+:::meta
+title: Electricity at home, 2025
+lang: en
+:::
+
+# Electricity at home, 2025
+
+> An example of the [plots kit's](https://github.com/Luccet/plots) `vega-lite.js`: charts of a
+> year of daily meter readings read from a CSV file beside the note, with Vega-Lite's
+> transforms (fold, filter, a regression); a stacked bar chart in the theme's series colours; one
+> series and its fitted line in the first; tooltips; charts that fill the column; and charts as
+> numbered figures. The colours are the [Catppuccin theme's](https://github.com/Luccet/themes),
+> listed after classic, and follow the reader's light or dark setting. The readings are
+> illustrative, not a real meter's. The note loads `../vega-lite.js`, this repository's copy.
+
+The house is heated by an air-source heat pump, which has a meter of its own; the rest of the
+house is on the main meter. The supplier's app exports a line a day,
+[electricity-2025.csv](electricity-2025.csv): the day's mean outdoor temperature, the heat
+pump's kWh and the rest of the house's.
+
+| | kWh | Share |
+|---|--:|--:|
+| Heat pump | 3,660 | 61 % |
+| The rest of the house | 2,366 | 39 % |
+| The year | 6,026 | |
+
+## Month by month
+
+January used the most, 799 kWh, and July the least, 248 kWh: about a third as much
+(@fig-months). Nearly all of that swing is the heat pump's, 569 kWh in January and 76 in July.
+The rest of the house stays between 164 kWh (June) and 230 kWh (January), and is a little
+higher at weekends: 7.2 kWh on an average Saturday or Sunday, 6.2 on a weekday.
+
+:::figure[Electricity by month: the heat pump, and the rest of the house.]{#fig-months}
+```vega-lite
+{
+  "width": "container",
+  "height": 260,
+  "data": {
+    "url": "electricity-2025.csv",
+    "format": {"parse": {"date": "date:'%Y-%m-%d'", "outdoor_c": "number", "heat_pump_kwh": "number", "house_kwh": "number"}}
+  },
+  "transform": [
+    {"fold": ["heat_pump_kwh", "house_kwh"], "as": ["meter", "kwh"]},
+    {"calculate": "datum.meter === 'heat_pump_kwh' ? 'Heat pump' : 'Rest of the house'", "as": "meter"}
+  ],
+  "mark": "bar",
+  "encoding": {
+    "x": {"timeUnit": "month", "field": "date", "type": "ordinal", "title": null},
+    "y": {"aggregate": "sum", "field": "kwh", "type": "quantitative", "title": "kWh"},
+    "color": {"field": "meter", "type": "nominal", "title": null, "legend": {"orient": "top"}},
+    "tooltip": [
+      {"timeUnit": "month", "field": "date", "type": "ordinal", "title": "Month"},
+      {"field": "meter", "type": "nominal", "title": "Meter"},
+      {"aggregate": "sum", "field": "kwh", "type": "quantitative", "title": "kWh", "format": ",.0f"}
+    ]
+  }
+}
+```
+:::
+
+## Against the weather
+
+On the 254 days below 15 °C, the heat pump's use falls roughly along a straight line as the day gets
+warmer (@fig-weather; the line is a least-squares fit to those days): about 22.2 kWh at 0 °C,
+and 1.3 kWh less for each degree warmer. On the 80 days of 16 °C or more it only heats water,
+2.4 kWh a day, and the line comes down to that at about 15.3 °C, where the heating starts.
+
+If the heat pump's seasonal efficiency is 3, those 1.3 kWh of electricity are about 3.9 kWh of
+heat a day for each degree: a heat loss of about 160 W per degree between inside and out. That
+is the number insulation would bring down.
+
+:::figure[The heat pump's use each day against the day's mean outdoor temperature.]{#fig-weather}
+```vega-lite
+{
+  "width": "container",
+  "height": 300,
+  "data": {
+    "url": "electricity-2025.csv",
+    "format": {"parse": {"date": "date:'%Y-%m-%d'", "outdoor_c": "number", "heat_pump_kwh": "number", "house_kwh": "number"}}
+  },
+  "encoding": {
+    "x": {"field": "outdoor_c", "type": "quantitative", "title": "Mean outdoor temperature (°C)"},
+    "y": {"field": "heat_pump_kwh", "type": "quantitative", "title": "Heat pump (kWh a day)"}
+  },
+  "layer": [
+    {
+      "mark": {"type": "point", "filled": true, "size": 30, "opacity": 0.5},
+      "encoding": {
+        "tooltip": [
+          {"field": "date", "type": "temporal", "title": "Day", "format": "%-d %B"},
+          {"field": "outdoor_c", "type": "quantitative", "title": "°C"},
+          {"field": "heat_pump_kwh", "type": "quantitative", "title": "kWh"}
+        ]
+      }
+    },
+    {
+      "transform": [
+        {"filter": "datum.outdoor_c < 15"},
+        {"regression": "heat_pump_kwh", "on": "outdoor_c"}
+      ],
+      "mark": {"type": "line", "strokeWidth": 2.5}
+    }
+  ]
+}
+```
+:::
